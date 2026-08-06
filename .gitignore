@@ -1,0 +1,4 @@
+build-test/
+.test-dist/
+node_modules/
+*.log

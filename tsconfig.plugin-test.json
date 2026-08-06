@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "outDir": ".test-dist/plugin",
+    "rootDir": "."
+  },
+  "include": [
+    "fresh-inline-blame.ts",
+    "src/**/*.ts",
+    "types/**/*.d.ts"
+  ]
+}
