@@ -6,7 +6,9 @@ interface SpawnResult {
 
 interface ProcessHandle<T> extends PromiseLike<T> {
   readonly result: Promise<T>;
-  kill(): Promise<boolean>;
+  // Fresh 0.4.6's spawnProcess wrapper returns a boolean here even though
+  // its generated declarations advertise Promise<boolean>.
+  kill(): boolean | Promise<boolean>;
 }
 
 interface LocalPath {

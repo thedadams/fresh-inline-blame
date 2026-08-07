@@ -217,11 +217,15 @@ function createHarness(options = {}) {
       result: pending.promise,
       then: (onFulfilled, onRejected) =>
         pending.promise.then(onFulfilled, onRejected),
-      kill: () => {
-        processState.killed += 1;
-        return Promise.resolve(true);
-      },
     };
+    if (!options.omitProcessKill) {
+      handle.kill = () => {
+        processState.killed += 1;
+        // Fresh 0.4.6's spawnProcess wrapper returns a synchronous boolean,
+        // even though its generated declaration says Promise<boolean>.
+        return true;
+      };
+    }
     processState.handle = handle;
     state.processes.push(processState);
     return handle;
@@ -638,6 +642,32 @@ test('cancels an active blame and ignores its stale completion', async () => {
   assert.match(harness.state.virtualTextAdds[0].text, /^ Current Author /);
   assert.doesNotMatch(harness.state.virtualTextAdds[0].text, /Stale Author/);
   assert.equal(harness.state.virtualTextAdds[0].position, 212);
+});
+
+test('ignores stale blame when a runtime process handle cannot be killed', async () => {
+  const harness = createHarness({ omitProcessKill: true });
+  harness.cacheLine(0, 'old line\n', 0);
+  harness.cacheLine(1, 'current line\n', 100);
+
+  assert.doesNotThrow(() => harness.moveCursor(1));
+  assert.equal(harness.state.processes[0].killed, 0);
+
+  harness.resolveProcess(0, successfulBlame({ author: 'Stale Author' }));
+  await waitFor(
+    () => harness.state.processes.length === 2,
+    'replacement blame process did not start',
+  );
+  assert.equal(harness.state.virtualTextAdds.length, 0);
+
+  harness.resolveProcess(
+    1,
+    successfulBlame({ hash: OTHER_HASH, author: 'Current Author' }),
+  );
+  await waitFor(
+    () => harness.state.virtualTextAdds.length === 1,
+    'current blame did not render',
+  );
+  assert.match(harness.state.virtualTextAdds[0].text, /^ Current Author /);
 });
 
 test('renders when the requested line snapshot arrives after the grace period', async () => {

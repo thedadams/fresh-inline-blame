@@ -376,10 +376,27 @@ function clearRenderedBlame(): void {
 function cancelBlameProcess(): void {
   const handle = activeBlameHandle;
   activeBlameHandle = null;
-  if (handle !== null) {
-    void handle.kill().catch((error: unknown) => {
-      debug(`cancel failed: ${errorMessage(error)}`);
-    });
+  if (handle !== null) cancelProcess(handle, "cancel failed");
+}
+
+function cancelProcess(
+  handle: ProcessHandle<SpawnResult>,
+  failureMessage: string,
+): void {
+  if (typeof handle.kill !== "function") return;
+  try {
+    // Fresh 0.4.6 returns a synchronous boolean for spawnProcess.kill(),
+    // despite declaring Promise<boolean>. Newer/fixed runtimes may return
+    // the declared promise, so support both without allocating on the hot
+    // synchronous cursor-movement path.
+    const cancellation = handle.kill();
+    if (typeof cancellation !== "boolean") {
+      void cancellation.catch((error: unknown) => {
+        debug(`${failureMessage}: ${errorMessage(error)}`);
+      });
+    }
+  } catch (error) {
+    debug(`${failureMessage}: ${errorMessage(error)}`);
   }
 }
 
@@ -669,9 +686,7 @@ function stopDiffProcess(commit: string): void {
   const handle = diffSpawns.get(commit);
   if (handle === undefined) return;
   diffSpawns.delete(commit);
-  void handle.kill().catch((error: unknown) => {
-    debug(`git show cancel failed: ${errorMessage(error)}`);
-  });
+  cancelProcess(handle, "git show cancel failed");
 }
 
 function stopAllDiffProcesses(): void {
