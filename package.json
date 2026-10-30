@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/sinelaw/fresh/main/crates/fresh-editor/plugins/schemas/package.schema.json",
   "name": "fresh-inline-blame",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fast current-line Git blame annotations for the Fresh editor",
   "license": "MIT",
   "type": "plugin",
