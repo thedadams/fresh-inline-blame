@@ -6,9 +6,8 @@ interface SpawnResult {
 
 interface ProcessHandle<T> extends PromiseLike<T> {
   readonly result: Promise<T>;
-  // Fresh 0.4.6's spawnProcess wrapper returns a boolean here even though
-  // its generated declarations advertise Promise<boolean>.
-  kill(): boolean | Promise<boolean>;
+  readonly processId: number;
+  kill(): Promise<boolean>;
 }
 
 interface LocalPath {
@@ -85,8 +84,15 @@ interface LinesChangedHookArgs {
     byte_start: number;
     byte_end: number;
     content: string;
+    region?: "open" | "body" | "close";
+    table?: {
+      role: "header" | "delimiter" | "row";
+      first_row: boolean;
+      last: boolean;
+    };
   }[];
   epoch: number;
+  is_composing_in_any_split: boolean;
 }
 
 interface FreshEditor {
@@ -139,10 +145,13 @@ interface FreshEditor {
   localPath(path: string): LocalPath;
   createDir(path: string | LocalPath): boolean;
   fileExists(path: string | LocalPath): boolean;
+  // Since Fresh 0.5.2, writeFile refuses an existing path; replaceFile
+  // atomically replaces it.
   writeFile(path: string | LocalPath, content: string): boolean;
+  replaceFile(path: string | LocalPath, content: string): boolean;
   refreshBufferFromDisk(bufferId: number): Promise<number | null>;
   markFileReadOnly(path: string): boolean;
-  setIndentationGuide(bufferId: number, enabled: boolean): boolean;
+  setIndentationGuide(bufferId: number, enabled: boolean | null): boolean;
 
   listSplits(): SplitSnapshot[];
   splitWindow(options: {

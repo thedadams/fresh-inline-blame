@@ -221,9 +221,7 @@ function createHarness(options = {}) {
     if (!options.omitProcessKill) {
       handle.kill = () => {
         processState.killed += 1;
-        // Fresh 0.4.6's spawnProcess wrapper returns a synchronous boolean,
-        // even though its generated declaration says Promise<boolean>.
-        return true;
+        return Promise.resolve(true);
       };
     }
     processState.handle = handle;
@@ -300,7 +298,16 @@ function createHarness(options = {}) {
       state.fileExistsChecks.push(value);
       return files.has(value);
     },
+    // Fresh 0.5.2+ refuses to overwrite with writeFile; replaceFile is the
+    // explicit replacement API.
     writeFile: (target, content) => {
+      const value = localPathValue(target);
+      if (files.has(value)) return false;
+      state.writes.push({ path: value, content });
+      files.add(value);
+      return true;
+    },
+    replaceFile: (target, content) => {
       const value = localPathValue(target);
       state.writes.push({ path: value, content });
       files.add(value);

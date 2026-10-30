@@ -15,7 +15,7 @@ dedicated split.
 
 ## Requirements
 
-- Fresh 0.4.6 or newer, with plugin API version 2
+- Fresh 0.5.2 or newer, with plugin API version 2
 - `git` available on the editor host
 - A trusted workspace and a saved, tracked file inside a Git worktree
 

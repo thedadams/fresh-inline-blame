@@ -15,5 +15,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: npm install --global typescript@5 @fresh-editor/fresh-editor@^0.4.6
+      - run: npm install --global typescript@5 @fresh-editor/fresh-editor@^0.5.2
       - run: make check

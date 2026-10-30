@@ -385,16 +385,9 @@ function cancelProcess(
 ): void {
   if (typeof handle.kill !== "function") return;
   try {
-    // Fresh 0.4.6 returns a synchronous boolean for spawnProcess.kill(),
-    // despite declaring Promise<boolean>. Newer/fixed runtimes may return
-    // the declared promise, so support both without allocating on the hot
-    // synchronous cursor-movement path.
-    const cancellation = handle.kill();
-    if (typeof cancellation !== "boolean") {
-      void cancellation.catch((error: unknown) => {
-        debug(`${failureMessage}: ${errorMessage(error)}`);
-      });
-    }
+    void handle.kill().catch((error: unknown) => {
+      debug(`${failureMessage}: ${errorMessage(error)}`);
+    });
   } catch (error) {
     debug(`${failureMessage}: ${errorMessage(error)}`);
   }
@@ -726,7 +719,7 @@ async function pollDiff(
   if (!stillOwned) return;
 
   if (completion.exitCode === 0) {
-    editor.writeFile(editor.localPath(diffDonePath(commit)), "");
+    editor.replaceFile(editor.localPath(diffDonePath(commit)), "");
   } else if (completion.exitCode !== null) {
     editor.setStatus(
       `Inline Blame: git show failed (exit ${completion.exitCode})`,
@@ -742,7 +735,9 @@ async function createDiffView(
   const existing = diffViews.get(commit);
   if (existing !== undefined) {
     if (diffSpawns.has(commit) || diffIsComplete(commit)) return existing;
-    if (!editor.writeFile(editor.localPath(diffPath(commit)), "")) return null;
+    if (!editor.replaceFile(editor.localPath(diffPath(commit)), "")) {
+      return null;
+    }
     const handle = startDiffProcess(commit, cwd);
     diffSpawns.set(commit, handle);
     void pollDiff(commit, existing.bufferId, handle);
@@ -752,7 +747,7 @@ async function createDiffView(
   const generate = !diffIsComplete(commit);
   if (
     generate &&
-    !editor.writeFile(editor.localPath(diffPath(commit)), "")
+    !editor.replaceFile(editor.localPath(diffPath(commit)), "")
   ) {
     return null;
   }

@@ -11,7 +11,7 @@
     "productivity"
   ],
   "fresh": {
-    "min_version": "0.4.6",
+    "min_version": "0.5.2",
     "min_api_version": 2,
     "entry": "fresh-inline-blame.ts"
   }
