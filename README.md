@@ -70,3 +70,7 @@ make check
 
 This type-checks both plugin and test builds, runs the unit/integration tests,
 validates the package manifest, and asks Fresh to validate the plugin API.
+
+## License
+
+[MIT](LICENSE)

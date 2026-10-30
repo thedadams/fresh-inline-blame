@@ -3,6 +3,7 @@
   "name": "fresh-inline-blame",
   "version": "0.1.0",
   "description": "Fast current-line Git blame annotations for the Fresh editor",
+  "license": "MIT",
   "type": "plugin",
   "keywords": [
     "git",
